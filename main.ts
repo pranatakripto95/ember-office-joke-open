@@ -27,10 +27,19 @@ const JOKE = "Our standup ran 45 minutes. Nobody stood up.";
 // The gate only accepts 1-200 characters of non-blank UTF-8 text on a
 // single line, so refuse to write anything outside that window — or
 // anything with a line break in it — instead of submitting a file
-// the scorer would throw away.
+// the scorer would throw away. A joke that is only whitespace is not
+// a joke: reject it outright, and check the byte length too, since
+// the leaderboard's Size column counts bytes, not characters.
 const characters = [...JOKE].length;
+const bytes = Buffer.byteLength(JOKE, "utf8");
+if (JOKE.trim().length === 0) {
+  throw new Error("joke must not be only whitespace");
+}
 if (characters < 1 || characters > 200 || JOKE.trim().length === 0) {
   throw new Error(`joke is ${characters} characters, outside the 1-200 gate`);
+}
+if (bytes > 200) {
+  throw new Error(`joke is ${bytes} bytes, over the 200-byte size column`);
 }
 if (JOKE.includes("\n") || JOKE.includes("\r")) {
   throw new Error("joke must be a single line");
